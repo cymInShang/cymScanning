@@ -28,7 +28,7 @@
     int num;
     BOOL upOrdown;
     NSTimer * timer;
-     UIImageView * imageView;
+    UIImageView * imageView;
 }
 @property (strong,nonatomic)AVCaptureDevice * device; //获取设备
 @property (strong,nonatomic)AVCaptureDeviceInput * input; // 输入流
@@ -50,9 +50,7 @@
 }
 -(void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
-    [timer setFireDate:[NSDate distantFuture]]; // 关闭定时器
-    [_session stopRunning];  // 扫描识别停止
-    [self removeSuperLayer]; // 删除
+    [self scanViewOk];
 }
 #pragma mark -
 -(void)initUIScanLine{
@@ -73,13 +71,6 @@
     UIView *navview = [[UIView alloc] initWithFrame:CGRectMake(0, 0, kScreenWidth, kNavigationHeight)];
     [self.view addSubview:navview];
     
-    UILabel *labTitle= [[UILabel alloc] initWithFrame:CGRectMake((kScreenWidth-100)/2, kStatusBarHeight, 100, 44)];
-    labTitle.textAlignment = NSTextAlignmentCenter;
-    labTitle.font = [UIFont systemFontOfSize:18];
-    labTitle.textColor = [UIColor blackColor];
-    labTitle.text  = @"扫一扫";
-    [navview addSubview:labTitle];
-    
     UILabel * labIntroudction= [[UILabel alloc] initWithFrame:CGRectMake(0,navview.frame.origin.y+navview.frame.size.height+20, kScreenWidth, 50)];
     labIntroudction.backgroundColor = [UIColor clearColor];
     labIntroudction.numberOfLines=2;
@@ -91,6 +82,9 @@
 }
 
 -(void)setupCamera{
+    // Device 获取摄像头
+    _device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    
     // Input 创建输入流
     _input = [AVCaptureDeviceInput deviceInputWithDevice:self.device error:nil];
     
@@ -189,5 +183,30 @@
     [_preview removeAllAnimations];
     [_preview removeFromSuperlayer];
 }
-
+#pragma mark - 扫描完成
+-(void)scanViewOk{
+    [timer setFireDate:[NSDate distantFuture]]; // 关闭定时器
+    [_session stopRunning];  // 扫描识别停止
+    [self removeSuperLayer]; // 删除
+}
+#pragma mark - delegate
+- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection *)connection{
+    
+    if ([metadataObjects count] >0)
+    {
+        AVMetadataMachineReadableCodeObject * metadataObject = [metadataObjects objectAtIndex:0];
+        /**获取扫描结果*/
+        stringValue = metadataObject.stringValue;
+        
+        UIAlertView *alter = [[UIAlertView alloc] initWithTitle:@"扫描结果" message:stringValue delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+        [alter show];
+        
+    }else{
+        UIAlertView *alter = [[UIAlertView alloc] initWithTitle:@"温馨提示" message:@"没有扫描到任何信息" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+        [alter show];
+    }
+    
+    [timer setFireDate:[NSDate distantFuture]]; // 关闭定时器
+    [_session stopRunning];  // 扫描识别停止
+}
 @end
