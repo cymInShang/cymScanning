@@ -7,7 +7,7 @@
 //
 /* 关于二维码扫描功能的相关配置：
  * plist文件里面添加 “Privacy - Camera Usage Description” 格式是string，后面填写 “扫描获取二维码信息，需要使用摄像头”
- *
+ * 引入头文件 #import <AVFoundation/AVFoundation.h>
  */
 
 #import <UIKit/UIKit.h>
